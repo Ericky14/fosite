@@ -206,13 +206,13 @@ type Requester interface {
 	GetRequestedScopes() (scopes Arguments)
 
 	// GetRequestedAudience returns the requested audiences for this request.
-	GetRequestedAudience() (audience Arguments)
+	GetRequestedAudience() (audience string)
 
 	// SetRequestedScopes sets the request's scopes.
 	SetRequestedScopes(scopes Arguments)
 
 	// SetRequestedAudience sets the requested audience.
-	SetRequestedAudience(audience Arguments)
+	SetRequestedAudience(audience string)
 
 	// AppendRequestedScope appends a scope to the request.
 	AppendRequestedScope(scope string)
@@ -221,7 +221,7 @@ type Requester interface {
 	GetGrantedScopes() (grantedScopes Arguments)
 
 	// GetGrantedAudience returns all granted audiences.
-	GetGrantedAudience() (grantedAudience Arguments)
+	GetGrantedAudience() (grantedAudience string)
 
 	// GrantScope marks a request's scope as granted.
 	GrantScope(scope string)

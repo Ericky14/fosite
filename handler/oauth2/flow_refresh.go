@@ -93,9 +93,7 @@ func (c *RefreshTokenGrantHandler) HandleTokenEndpointRequest(ctx context.Contex
 		return err
 	}
 
-	for _, audience := range originalRequest.GetGrantedAudience() {
-		request.GrantAudience(audience)
-	}
+	request.GrantAudience(originalRequest.GetGrantedAudience())
 
 	atLifespan := fosite.GetEffectiveLifespan(request.GetClient(), fosite.GrantTypeRefreshToken, fosite.AccessToken, c.Config.GetAccessTokenLifespan(ctx))
 	request.GetSession().SetExpiresAt(fosite.AccessToken, time.Now().UTC().Add(atLifespan).Round(time.Second))

@@ -29,7 +29,7 @@ type JWTClaimsDefaults struct {
 
 type JWTClaimsContainer interface {
 	// With returns a copy of itself with expiresAt, scope, audience set to the given values.
-	With(expiry time.Time, scope, audience []string) JWTClaimsContainer
+	With(expiry time.Time, scope []string, audience string) JWTClaimsContainer
 
 	// WithDefaults returns a copy of itself with issuedAt and issuer set to the given default values. If those
 	// values are already set in the claims, they will not be updated.
@@ -46,7 +46,7 @@ type JWTClaimsContainer interface {
 type JWTClaims struct {
 	Subject    string
 	Issuer     string
-	Audience   []string
+	Audience   string
 	JTI        string
 	IssuedAt   time.Time
 	NotBefore  time.Time
@@ -56,7 +56,7 @@ type JWTClaims struct {
 	ScopeField JWTScopeFieldEnum
 }
 
-func (c *JWTClaims) With(expiry time.Time, scope, audience []string) JWTClaimsContainer {
+func (c *JWTClaims) With(expiry time.Time, scope []string, audience string) JWTClaimsContainer {
 	c.ExpiresAt = expiry
 	c.Scope = scope
 	c.Audience = audience
@@ -101,11 +101,7 @@ func (c *JWTClaims) ToMap() map[string]interface{} {
 		ret["jti"] = uuid.New().String()
 	}
 
-	if len(c.Audience) > 0 {
-		ret["aud"] = c.Audience
-	} else {
-		ret["aud"] = []string{}
-	}
+	ret["aud"] = c.Audience
 
 	if !c.IssuedAt.IsZero() {
 		ret["iat"] = c.IssuedAt.Unix()
@@ -160,9 +156,13 @@ func (c *JWTClaims) FromMap(m map[string]interface{}) {
 			}
 		case "aud":
 			if s, ok := v.(string); ok {
-				c.Audience = []string{s}
-			} else if s, ok := v.([]string); ok {
 				c.Audience = s
+			} else if s, ok := v.([]string); ok {
+				if len(s) > 0 {
+					c.Audience = s[0]
+				} else {
+					c.Audience = ""
+				}
 			}
 		case "iat":
 			c.IssuedAt = toTime(v, c.IssuedAt)

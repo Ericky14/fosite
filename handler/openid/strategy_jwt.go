@@ -15,7 +15,6 @@ import (
 
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/token/jwt"
-	"github.com/ory/go-convenience/stringslice"
 )
 
 const defaultExpiryTime = time.Hour
@@ -225,7 +224,7 @@ func (h DefaultStrategy) GenerateIDToken(ctx context.Context, lifespan time.Dura
 		claims.Nonce = nonce
 	}
 
-	claims.Audience = stringslice.Unique(append(claims.Audience, requester.GetClient().GetID()))
+	claims.Audience = requester.GetClient().GetID()
 	claims.IssuedAt = time.Now().UTC()
 
 	token, _, err = h.Signer.Generate(ctx, claims.ToMapClaims(), sess.IDTokenHeaders())

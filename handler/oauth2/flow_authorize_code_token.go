@@ -135,9 +135,7 @@ func (c *AuthorizeExplicitGrantHandler) PopulateTokenEndpointResponse(ctx contex
 		requester.GrantScope(scope)
 	}
 
-	for _, audience := range authorizeRequest.GetGrantedAudience() {
-		requester.GrantAudience(audience)
-	}
+	requester.GrantAudience(authorizeRequest.GetGrantedAudience())
 
 	access, accessSignature, err := c.AccessTokenStrategy.GenerateAccessToken(ctx, requester)
 	if err != nil {

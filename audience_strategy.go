@@ -12,39 +12,37 @@ import (
 	"github.com/ory/x/errorsx"
 )
 
-type AudienceMatchingStrategy func(haystack []string, needle []string) error
+type AudienceMatchingStrategy func(haystack []string, needle string) error
 
-func DefaultAudienceMatchingStrategy(haystack []string, needle []string) error {
-	if len(needle) == 0 {
+func DefaultAudienceMatchingStrategy(haystack []string, n string) error {
+	if len(n) == 0 {
 		return nil
 	}
 
-	for _, n := range needle {
-		nu, err := url.Parse(n)
+	nu, err := url.Parse(n)
+	if err != nil {
+		return errorsx.WithStack(ErrInvalidRequest.WithHintf("Unable to parse requested audience '%s'.", n).WithWrap(err).WithDebug(err.Error()))
+	}
+
+	var found bool
+	for _, h := range haystack {
+		hu, err := url.Parse(h)
 		if err != nil {
-			return errorsx.WithStack(ErrInvalidRequest.WithHintf("Unable to parse requested audience '%s'.", n).WithWrap(err).WithDebug(err.Error()))
+			return errorsx.WithStack(ErrInvalidRequest.WithHintf("Unable to parse whitelisted audience '%s'.", h).WithWrap(err).WithDebug(err.Error()))
 		}
 
-		var found bool
-		for _, h := range haystack {
-			hu, err := url.Parse(h)
-			if err != nil {
-				return errorsx.WithStack(ErrInvalidRequest.WithHintf("Unable to parse whitelisted audience '%s'.", h).WithWrap(err).WithDebug(err.Error()))
-			}
-
-			allowedPath := strings.TrimRight(hu.Path, "/")
-			if nu.Scheme == hu.Scheme &&
-				nu.Host == hu.Host &&
-				(nu.Path == hu.Path ||
-					nu.Path == allowedPath ||
-					len(nu.Path) > len(allowedPath) && strings.TrimRight(nu.Path[:len(allowedPath)+1], "/")+"/" == allowedPath+"/") {
-				found = true
-			}
+		allowedPath := strings.TrimRight(hu.Path, "/")
+		if nu.Scheme == hu.Scheme &&
+			nu.Host == hu.Host &&
+			(nu.Path == hu.Path ||
+				nu.Path == allowedPath ||
+				len(nu.Path) > len(allowedPath) && strings.TrimRight(nu.Path[:len(allowedPath)+1], "/")+"/" == allowedPath+"/") {
+			found = true
 		}
+	}
 
-		if !found {
-			return errorsx.WithStack(ErrInvalidRequest.WithHintf("Requested audience '%s' has not been whitelisted by the OAuth 2.0 Client.", n))
-		}
+	if !found {
+		return errorsx.WithStack(ErrInvalidRequest.WithHintf("Requested audience '%s' has not been whitelisted by the OAuth 2.0 Client.", n))
 	}
 
 	return nil
@@ -81,15 +79,13 @@ func ExactAudienceMatchingStrategy(haystack []string, needle []string) error {
 // query parameters, while RFC 6749 says that that request parameter must not be included
 // more than once (and thus why we use space-delimited value). This function tries to satisfy both.
 // If "audience" form parameter is repeated, we do not split the value by space.
-func GetAudiences(form url.Values) []string {
+func GetAudiences(form url.Values) string {
 	audiences := form["audience"]
-	if len(audiences) > 1 {
-		return RemoveEmpty(audiences)
-	} else if len(audiences) == 1 {
-		return RemoveEmpty(strings.Split(audiences[0], " "))
-	} else {
-		return []string{}
+	if len(audiences) > 0 {
+		audiences = RemoveEmpty(audiences)
+		return audiences[0]
 	}
+	return ""
 }
 
 func (f *Fosite) validateAuthorizeAudience(ctx context.Context, r *http.Request, request *AuthorizeRequest) error {

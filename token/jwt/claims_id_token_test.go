@@ -27,7 +27,7 @@ func TestIDTokenClaimsToMap(t *testing.T) {
 		Subject:                             "peter",
 		IssuedAt:                            time.Now().UTC().Round(time.Second),
 		Issuer:                              "fosite",
-		Audience:                            []string{"tests"},
+		Audience:                            "tests",
 		ExpiresAt:                           time.Now().UTC().Add(time.Hour).Round(time.Second),
 		AuthTime:                            time.Now().UTC(),
 		RequestedAt:                         time.Now().UTC(),

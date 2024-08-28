@@ -17,7 +17,7 @@ var jwtClaims = &JWTClaims{
 	IssuedAt:  time.Now().UTC().Round(time.Second),
 	Issuer:    "fosite",
 	NotBefore: time.Now().UTC().Round(time.Second),
-	Audience:  []string{"tests"},
+	Audience:  "tests",
 	ExpiresAt: time.Now().UTC().Add(time.Hour).Round(time.Second),
 	JTI:       "abcdef",
 	Scope:     []string{"email", "offline"},

@@ -63,8 +63,8 @@ func AccessTokenJWTToRequest(token *jwt.Token) fosite.Requester {
 			Subject: claims.Subject,
 		},
 		// We do not really know which audiences were requested, so we set them to granted.
-		RequestedAudience: claims.Audience,
-		GrantedAudience:   claims.Audience,
+		RequestedAudience: []string{claims.Audience},
+		GrantedAudience:   []string{claims.Audience},
 	}
 }
 

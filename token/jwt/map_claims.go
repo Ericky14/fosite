@@ -27,20 +27,25 @@ type MapClaims map[string]interface{}
 // Compares the aud claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
 func (m MapClaims) VerifyAudience(cmp string, req bool) bool {
-	var aud []string
+	var aud string
 	switch v := m["aud"].(type) {
 	case []string:
-		aud = v
+		if len(v) > 0 {
+			aud = v[0]
+		} else {
+			aud = ""
+		}
 	case []interface{}:
 		for _, a := range v {
 			vs, ok := a.(string)
 			if !ok {
 				return false
 			}
-			aud = append(aud, vs)
+			aud = vs
+			break
 		}
 	case string:
-		aud = append(aud, v)
+		aud = v
 	default:
 		return false
 	}
@@ -149,16 +154,15 @@ func (m MapClaims) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func verifyAud(aud []string, cmp string, required bool) bool {
+func verifyAud(aud string, cmp string, required bool) bool {
 	if len(aud) == 0 {
 		return !required
 	}
 
-	for _, a := range aud {
-		if subtle.ConstantTimeCompare([]byte(a), []byte(cmp)) != 0 {
-			return true
-		}
+	if subtle.ConstantTimeCompare([]byte(aud), []byte(cmp)) != 0 {
+		return true
 	}
+
 	return false
 }
 

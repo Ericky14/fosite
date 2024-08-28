@@ -71,11 +71,9 @@ func (a *Request) SetRequestedScopes(s Arguments) {
 	}
 }
 
-func (a *Request) SetRequestedAudience(s Arguments) {
+func (a *Request) SetRequestedAudience(s string) {
 	a.RequestedAudience = nil
-	for _, scope := range s {
-		a.AppendRequestedAudience(scope)
-	}
+	a.AppendRequestedAudience(s)
 }
 
 func (a *Request) AppendRequestedScope(scope string) {
@@ -96,16 +94,15 @@ func (a *Request) AppendRequestedAudience(audience string) {
 	a.RequestedAudience = append(a.RequestedAudience, audience)
 }
 
-func (a *Request) GetRequestedAudience() (audience Arguments) {
-	return a.RequestedAudience
+func (a *Request) GetRequestedAudience() (audience string) {
+	if len(a.RequestedAudience) > 0 {
+		return a.RequestedAudience[0]
+	}
+	return ""
 }
 
 func (a *Request) GrantAudience(audience string) {
-	for _, has := range a.GrantedAudience {
-		if audience == has {
-			return
-		}
-	}
+	a.GrantedAudience = []string{}
 	a.GrantedAudience = append(a.GrantedAudience, audience)
 }
 
@@ -113,8 +110,11 @@ func (a *Request) GetGrantedScopes() Arguments {
 	return a.GrantedScope
 }
 
-func (a *Request) GetGrantedAudience() Arguments {
-	return a.GrantedAudience
+func (a *Request) GetGrantedAudience() string {
+	if len(a.GrantedAudience) > 0 {
+		return a.GrantedAudience[0]
+	}
+	return ""
 }
 
 func (a *Request) GrantScope(scope string) {
@@ -142,12 +142,8 @@ func (a *Request) Merge(request Requester) {
 		a.GrantScope(scope)
 	}
 
-	for _, aud := range request.GetRequestedAudience() {
-		a.AppendRequestedAudience(aud)
-	}
-	for _, aud := range request.GetGrantedAudience() {
-		a.GrantAudience(aud)
-	}
+	a.AppendRequestedAudience(request.GetRequestedAudience())
+	a.GrantAudience(request.GetGrantedAudience())
 
 	a.ID = request.GetID()
 	a.RequestedAt = request.GetRequestedAt()

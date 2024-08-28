@@ -14,7 +14,7 @@ type IDTokenClaims struct {
 	JTI                                 string                 `json:"jti"`
 	Issuer                              string                 `json:"iss"`
 	Subject                             string                 `json:"sub"`
-	Audience                            []string               `json:"aud"`
+	Audience                            string                 `json:"aud"`
 	Nonce                               string                 `json:"nonce"`
 	ExpiresAt                           time.Time              `json:"exp"`
 	IssuedAt                            time.Time              `json:"iat"`
@@ -49,11 +49,7 @@ func (c *IDTokenClaims) ToMap() map[string]interface{} {
 		ret["jti"] = uuid.New().String()
 	}
 
-	if len(c.Audience) > 0 {
-		ret["aud"] = c.Audience
-	} else {
-		ret["aud"] = []string{}
-	}
+	ret["aud"] = c.Audience
 
 	if !c.IssuedAt.IsZero() {
 		ret["iat"] = c.IssuedAt.Unix()
